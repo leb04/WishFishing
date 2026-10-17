@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+  background: #080d20;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+::selection {
+  background: #7761a9;
+  color: #fff;
+}
+
+.foundation-shell {
+  background-image:
+    radial-gradient(ellipse at 50% 40%, #37275340, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, #172f4b30, transparent 45%);
+}
+
+.starfield {
+  opacity: 0.5;
+  background-image:
+    radial-gradient(1px 1px at 17% 21%, #b3b5de, transparent),
+    radial-gradient(1px 1px at 83% 16%, #b3b5de, transparent),
+    radial-gradient(1px 1px at 73% 58%, #b3b5de, transparent),
+    radial-gradient(1.5px 1.5px at 24% 67%, #b3b5de, transparent),
+    radial-gradient(1px 1px at 89% 77%, #b3b5de, transparent),
+    radial-gradient(1px 1px at 37% 12%, #b3b5de, transparent),
+    radial-gradient(1px 1px at 54% 87%, #b3b5de, transparent);
+}
+
+.project-title {
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-weight: 400;
+  color: #eeebff;
+}
+
+.cosmic-seal {
+  background: radial-gradient(circle, #9c7bff1a, transparent 68%);
+}
+
+.seal-orbit {
+  border: 1px solid #b3a0ed33;
+  box-shadow: 0 0 38px #a58bea0c, inset 0 0 30px #a58bea08;
+}
+
+.seal-orbit-inner {
+  border-color: #a58bea15;
+}
+
+.seal-star {
+  text-shadow: 0 0 32px #b9a1ff55;
+}
+
+.seal-satellite {
+  box-shadow: 0 0 12px #bae6fd80;
+}
+
+.brand {
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand:focus-visible {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 6px;
+}

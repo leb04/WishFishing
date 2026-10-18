@@ -1,0 +1,20 @@
+.asset-showcase { min-height: 100svh; padding: 24px; background: #edf2ef; color: #263c34; font-family: Geist, sans-serif; }
+.asset-showcase-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.asset-showcase-heading h1 { margin: 4px 0; font-size: 28px; }
+.asset-showcase-heading p { margin: 6px 0; font-size: 13px; }
+.asset-eyebrow { letter-spacing: 0.14em; font-size: 10px !important; }
+.asset-showcase a { color: #315d4d; font-size: 13px; }
+.asset-choices { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+.asset-choices button { background: #fff; color: #263c34; border: 1px solid #abbeb3; padding: 8px 12px; font-size: 12px; border-radius: 5px; }
+.asset-choices button[aria-pressed="true"] { background: #315d4d; border-color: #315d4d; color: #fff; }
+.asset-instructions, .asset-showcase footer { font-size: 12px; margin: 12px 0; }
+.asset-canvas { height: max(440px, calc(100svh - 330px)); min-height: 440px; overflow: hidden; border: 1px solid #a8b9ae; border-radius: 8px; }
+.asset-canvas > div { height: 100%; }
+.asset-canvas canvas { display: block; touch-action: none; }
+.asset-label { display: block; white-space: nowrap; background: #f7faf7ee; color: #233f33; border: 1px solid #8da99a; border-radius: 4px; padding: 5px 8px; font: 11px Geist, sans-serif; pointer-events: none; }
+@media (max-width: 600px) { .asset-showcase { padding: 12px; } .asset-showcase-heading { align-items: start; flex-direction: column; gap: 8px; } .asset-canvas { min-height: 420px; } }
+
+.asset-view-label { font-size: 12px; font-weight: 600; margin: 12px 0 8px; }
+.asset-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 12px; margin: 10px 0; }
+.asset-legend p { font-size: 11px; margin: 0; overflow-wrap: anywhere; }
+.asset-legend span { display: block; font-weight: 600; color: #4a6757; }

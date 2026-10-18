@@ -1,40 +1,163 @@
-export default function App() {
-  return (
-    <div className="foundation-shell relative isolate flex min-h-svh flex-col overflow-hidden bg-[#080d20] text-slate-100">
-      <div className="starfield pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+import { useState } from "react";
+import { PoolEditor } from "./components/PoolEditor";
+import { History } from "./components/History";
+import { PondView } from "./components/PondView";
+import { Result } from "./components/Result";
+import { usePicker } from "./hooks/usePicker";
+import { useTheme } from "./hooks/useTheme";
+import type { ThemePreference } from "./types/picker";
 
-      <header className="flex items-center justify-between gap-4 px-6 py-7 sm:px-12 sm:py-9">
-        <a className="brand inline-flex items-center gap-3 rounded-sm" href="#main">
-          <span className="brand-star text-2xl text-violet-300" aria-hidden="true">✧</span>
-          <span className="text-sm font-medium tracking-wide">Gacha Picker</span>
-        </a>
-        <span className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-400">The beginning</span>
+export default function App() {
+  const picker = usePicker();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const theme = useTheme(picker.state.theme);
+
+  return (
+    <div className="app-shell">
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            WF<span>↝</span>
+          </span>
+          <div>
+            <h1>WishFishing</h1>
+            <p>Cast a Wish. Catch a Winner.</p>
+          </div>
+        </div>
+        <div className="toolbar">
+          <label className="theme-control">
+            <span className="sr-only">Appearance</span>
+            <select
+              aria-label="Appearance"
+              value={picker.state.theme}
+              onChange={(event) =>
+                picker.setTheme(event.target.value as ThemePreference)
+              }
+            >
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            className="secondary-button"
+            aria-controls="history"
+            aria-expanded={historyOpen}
+            onClick={() => {
+              setHistoryOpen(!historyOpen);
+              document
+                .getElementById("history")
+                ?.scrollIntoView({ block: "nearest" });
+            }}
+          >
+            Catch Log
+          </button>
+        </div>
       </header>
 
-      <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 py-12 text-center sm:py-16">
-        <div className="cosmic-seal relative mb-10 grid h-32 w-32 place-items-center sm:h-40 sm:w-40" aria-hidden="true">
-          <div className="seal-orbit absolute inset-0 rounded-full" />
-          <div className="seal-orbit seal-orbit-inner absolute inset-4 rounded-full" />
-          <span className="seal-star select-none text-6xl text-violet-200 sm:text-7xl">✧</span>
-          <span className="seal-satellite absolute right-0 top-5 h-1.5 w-1.5 rounded-full bg-sky-200" />
-        </div>
+      <main className="workspace">
+        <section className="pond" aria-labelledby="pond-title">
+          <div className="pond-heading">
+            <span className="location-mark" aria-hidden="true">
+              ⌁
+            </span>
+            <div>
+              <h2 id="pond-title">The wishing pond</h2>
+              <p>A quiet spot for a little chance.</p>
+            </div>
+            <span className="scene-label">{theme === "dark" ? "Moonlit pond" : "Daylight pond"}</span>
+          </div>
+          <PondView theme={theme} suspended={!!picker.result} />
+          <div className="cast-dock">
+            <p className="eligible-count" role="status">
+              <span className="count-dot" aria-hidden="true" />
+              {picker.eligibleCount} eligible{" "}
+              {picker.eligibleCount === 1 ? "name" : "names"}
+            </p>
+            <button
+              id="cast-line"
+              className="primary-button cast-button"
+              type="button"
+              disabled={!picker.eligibleCount || !!picker.result}
+              onClick={() => picker.cast()}
+            >
+              <span aria-hidden="true">↗</span> Cast the Line
+            </button>
+            <p className="cast-hint">
+              {!picker.state.entries.length
+                ? "Open Fishing Pool and add names to cast."
+                : !picker.eligibleCount
+                  ? "All names caught. Restore the pool or add more names."
+                  : "One cast. One randomly chosen name."}
+            </p>
+          </div>
+        </section>
 
-        <p className="mb-5 text-[0.65rem] font-medium uppercase tracking-[0.3em] text-violet-300 sm:text-xs">A little chance. A little wonder.</p>
-        <h1 className="project-title text-6xl leading-tight tracking-tight sm:text-8xl">Gacha Picker</h1>
-        <p className="mt-6 max-w-md text-base leading-7 text-slate-400 sm:text-lg sm:leading-8">
-          A new way to leave it to chance. A random name picker with a cosmic summoning experience, coming to life one stage at a time.
-        </p>
-
-        <p className="mt-10 inline-flex items-center gap-2.5 rounded-full border border-violet-300/15 bg-violet-300/5 px-4 py-2.5 text-xs tracking-wide text-slate-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-sky-300 shadow-[0_0_8px_#7dd3fc66]" aria-hidden="true" />
-          Foundation ready
-        </p>
+        <aside className="side-dock" aria-label="Fishing controls">
+          <PoolEditor
+            entries={picker.state.entries}
+            eligibleCount={picker.eligibleCount}
+            onAdd={picker.add}
+            onEdit={picker.edit}
+            onRemove={picker.remove}
+            onRestore={picker.restore}
+          />
+          <section
+            className="panel setting-panel"
+            aria-labelledby="settings-title"
+          >
+            <h2 id="settings-title" className="eyebrow">
+              Cast settings
+            </h2>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={picker.state.removeCaught}
+                onChange={(event) =>
+                  picker.setRemoveCaught(event.target.checked)
+                }
+              />
+              <span>Remove Caught Names</span>
+            </label>
+            <p className="help">
+              Caught entries stay in your list, but leave the eligible pool.
+              Duplicate names are separate catches.
+            </p>
+          </section>
+          <History
+            draws={picker.state.history}
+            onClear={picker.clearHistory}
+            open={historyOpen}
+            onToggle={setHistoryOpen}
+          />
+          <p className="privacy-note">
+            Just you and the pond.
+            <br />
+            Names and catches stay in this browser.
+          </p>
+        </aside>
       </main>
 
-      <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-white/5 px-6 py-6 text-[0.65rem] tracking-wide text-slate-400 sm:px-12">
-        <span>Stage 01 <span className="px-2 text-slate-600" aria-hidden="true">/</span> Project foundation</span>
-        <span>The journey starts here.</span>
+      <div className="feedback" aria-live="polite">
+        {picker.notice && <p role="status">{picker.notice}</p>}
+        {picker.error && <p role="alert">{picker.error}</p>}
+      </div>
+      <footer className="app-footer">
+        <span>
+          WF <span aria-hidden="true">/</span> A little luck goes a long way.
+        </span>
+        <span>Local to this browser</span>
       </footer>
+      {picker.result && (
+        <Result
+          draw={picker.result}
+          error={picker.error}
+          eligibleCount={picker.eligibleCount}
+          onAgain={() => picker.cast(true)}
+          onClose={picker.closeResult}
+        />
+      )}
     </div>
-  )
+  );
 }

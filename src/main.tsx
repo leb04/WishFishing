@@ -12,6 +12,11 @@ const applicationRoot = createRoot(root)
 async function renderApplication() {
   const params = new URLSearchParams(window.location.search)
   const localHost = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+  if (localHost && params.get('capture') === 'environment') {
+    const { default: EnvironmentCapture } = await import('./dev/EnvironmentCapture')
+    applicationRoot.render(<StrictMode><EnvironmentCapture /></StrictMode>)
+    return
+  }
   if (import.meta.env.DEV && params.get('showcase') === 'kenney') {
     const { default: AssetShowcase } = await import('./dev/AssetShowcase')
     applicationRoot.render(<StrictMode><AssetShowcase /></StrictMode>)

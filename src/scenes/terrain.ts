@@ -18,8 +18,6 @@ export const TERRAIN_PATCHES: TerrainPatch[] = [
 export function baselineShoreX(z: number, side: number) {
   return side * (12.8 + Math.sin(z * 0.065 + side * 0.8) * 2.8 + Math.sin(z * 0.14 + side * 1.7) * 1.15 + Math.max(0, -z - 65) * 0.18);
 }
-// Broad, deliberately unequal coves. The endpoints retain the Stage 3C lake
-// envelope; no displacement reaches the distant mountain geometry.
 const SHORE_PROFILE = [
   [12, 12.72, 15.33, 2.4, 1.3],
   [-8, 10.5, 14.2, 1.0, 2.5],
@@ -40,7 +38,7 @@ function profileAt(z: number, column: 1 | 2 | 3 | 4) {
 }
 export function shoreX(z: number, side: number) {
   if (z >= 12 || z <= -118) return baselineShoreX(z, side);
-  // Blend exactly into unchanged bank endpoints without a seam from rounding.
+  // Blend back into the baseline at the ends to avoid seams.
   const authored = side * profileAt(z, side < 0 ? 1 : 2);
   const edge = Math.min((12 - z) / 6, (z + 118) / 6, 1);
   const blend = edge * edge * (3 - 2 * edge);

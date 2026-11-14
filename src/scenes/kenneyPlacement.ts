@@ -16,7 +16,6 @@ const noise = (seed: number) => {
 };
 const isTree = (model: NatureModel) => model === "pine" || model === "tallPine" || model === "oak";
 
-/** User-marked central grove and isolated leaning oak; keep other vegetation. */
 export function isMarkedForRemoval(p: NaturePlacement) {
   const centralGrove = isTree(p.model) && p.z < -112 && p.x > -22 && p.x < 32;
   const isolatedOak = p.model === "oak" && p.x > -24 && p.x < -12 && p.z > -65 && p.z < -47;
@@ -120,7 +119,7 @@ export function generateBaselineNature(models: Record<NatureModel, NatureBounds>
 }
 
 
-/** Keep the accepted Stage 3C models/scales and layout; only correct for bank edits. */
+/** Reground the baseline placements against the current shoreline. */
 export function placeNature(models: Record<NatureModel, NatureBounds>) {
   const baseline = generateBaselineNature(models);
   const land = createTerrainSampler();
@@ -177,7 +176,6 @@ export function placeNature(models: Record<NatureModel, NatureBounds>) {
         const distance = 0.25 + Math.floor(attempt / 16) * 0.45;
         corrected = ground(original, x + Math.cos(angle) * distance, z + Math.sin(angle) * distance);
       }
-      // A slight base alignment is preferable to moving a pine out of its cluster.
       for (let attempt = 0; !corrected && isTree(original.model) && attempt < 80; attempt++) {
         const angle = noise(index * 83 + attempt + 9001) * Math.PI * 2;
         const distance = attempt === 0 ? 0 : 0.25 + Math.floor(attempt / 16) * 0.4;

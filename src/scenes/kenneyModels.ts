@@ -26,11 +26,9 @@ export function prepareNatureModel(scene: Object3D, rock = false): PreparedNatur
     let material = materials.get(source);
     if (!material) {
       material = source.clone();
-      // The exports mark organic surfaces metallic. Use the unchanged pond lights,
-      // preserving roughness without adding showcase environment lights.
+      // The source models mark organic surfaces as metallic.
       if (material instanceof MeshStandardMaterial) {
         material.metalness = 0;
-        // Production-only daylight grading; never mutate the cached showcase source.
         if (material.color.g > material.color.r * 1.1) {
           material.color.r *= 0.32; material.color.g *= 0.62; material.color.b *= 0.55;
         } else if (rock) material.color.set("#8b9290");

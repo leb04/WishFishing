@@ -30,7 +30,7 @@ function Instances({ part, placements, name }: {
 }
 
 export function KenneyVegetation() {
-  const gltfs = useGLTF(urls, false);
+  const gltfs = useGLTF(urls, false, false);
   const { scene, invalidate } = useThree();
   const data = useMemo(() => {
     const models = Object.fromEntries(names.map((name, index) => [name, prepareNatureModel(gltfs[index]!.scene, name === "boulder" || name === "smallRock")])) as Record<NatureModel, PreparedNatureModel>;

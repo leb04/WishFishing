@@ -1,6 +1,7 @@
 import { useGLTF } from "@react-three/drei";
+import { useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { InstancedMesh, Object3D } from "three";
+import { DirectionalLight, InstancedMesh, Object3D } from "three";
 import type { NatureModel } from "./kenneyAssetPaths";
 import { KENNEY_URLS } from "./kenneyAssetPaths";
 import { prepareNatureModel } from "./kenneyModels";
@@ -30,12 +31,20 @@ function Instances({ part, placements, name }: {
 
 export function KenneyVegetation() {
   const gltfs = useGLTF(urls, false);
+  const { scene, invalidate } = useThree();
   const data = useMemo(() => {
     const models = Object.fromEntries(names.map((name, index) => [name, prepareNatureModel(gltfs[index]!.scene, name === "boulder" || name === "smallRock")])) as Record<NatureModel, PreparedNatureModel>;
     const placements = placeNature(models);
     return { models, batches: names.map((name) => ({ name, placements: placements.filter((p) => p.model === name) })) };
   }, [gltfs]);
   useEffect(() => () => Object.values(data.models).forEach((model) => model.dispose()), [data]);
+  useLayoutEffect(() => {
+    // Vegetation is the only shadow caster and its instances stay in place.
+    scene.traverse(object => {
+      if (object instanceof DirectionalLight && object.castShadow) object.shadow.needsUpdate = true;
+    });
+    invalidate();
+  }, [data, scene, invalidate]);
   return <group name="kenney-nature">
     {data.batches.map(({ name, placements }) => placements.length > 0 && data.models[name].parts.map((part, index) =>
       <Instances key={`${name}-${index}`} name={`kenney-${name}`} part={part} placements={placements} />))}

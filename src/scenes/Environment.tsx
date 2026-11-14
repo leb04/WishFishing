@@ -53,7 +53,7 @@ export function Environment({ palette, night }: { palette: ScenePalette; night: 
       <fog attach="fog" args={[palette.fog, 110, 360]} />
       <group name="environment">
       <hemisphereLight args={[night ? "#badbe9" : "#ebefd6", palette.shore, palette.ambient]} />
-      <directionalLight castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-75} shadow-camera-right={75} shadow-camera-top={110} shadow-camera-bottom={-110} shadow-camera-far={240} shadow-normalBias={0.06} position={[-30, 65, 10]} color={night ? "#b2d7ee" : "#fff2d1"} intensity={palette.sunlight} />
+      <directionalLight castShadow shadow-autoUpdate={false} shadow-needsUpdate shadow-mapSize={[1024, 1024]} shadow-camera-left={-75} shadow-camera-right={75} shadow-camera-top={110} shadow-camera-bottom={-110} shadow-camera-far={240} shadow-normalBias={0.06} position={[-30, 65, 10]} color={night ? "#b2d7ee" : "#fff2d1"} intensity={palette.sunlight} />
       {/* Perspective-scaled sky objects sit beyond the ridges; both discs are
           slightly higher than their previous framing, without changing size. */}
       <mesh name={night ? "moon" : "sun"} position={[-78, 72.6, -299]}>

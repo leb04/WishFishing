@@ -3,6 +3,24 @@ import type { BufferGeometry } from "three";
 import type { ScenePalette } from "./config";
 import { createTerrainSampler } from "./terrain";
 
+const shoreWeights = new WeakMap<BufferGeometry, Float32Array>();
+
+function shorelineWeights(geometry: BufferGeometry) {
+  const cached = shoreWeights.get(geometry);
+  if (cached) return cached;
+  const positions = geometry.getAttribute("position");
+  const weights = new Float32Array(positions.count);
+  const land = createTerrainSampler();
+  try {
+    for (let index = 0; index < positions.count; index++) {
+      const distance = land.shorelineDistance(positions.getX(index), -positions.getY(index) - 26);
+      weights[index] = Math.max(0, 1 - distance / 2.8) * 0.45;
+    }
+    shoreWeights.set(geometry, weights);
+    return weights;
+  } finally { land.dispose(); }
+}
+
 /** Color a flat water grid once per palette change; no texture or reflection pass. */
 export function colorWaterSurface(geometry: BufferGeometry, palette: ScenePalette) {
   const positions = geometry.getAttribute("position");
@@ -15,20 +33,15 @@ export function colorWaterSurface(geometry: BufferGeometry, palette: ScenePalett
   const deep = new Color(palette.deepWater);
   const shallow = new Color(palette.shallowWater);
   const color = new Color();
-  const land = createTerrainSampler();
-  try {
-    for (let index = 0; index < positions.count; index++) {
-      const x = positions.getX(index);
-      // PlaneGeometry is rotated -PI/2 and the lake center is at world Z = -26.
-      const z = -positions.getY(index) - 26;
-      const distance = land.shorelineDistance(x, z);
-      const nearShore = Math.max(0, 1 - distance / 2.8);
-      const variation = 0.25 + Math.sin(x * 0.18 + z * 0.12) * 0.045 + Math.cos(z * 0.29 - x * 0.1) * 0.03;
-      color.copy(base).lerp(deep, variation).lerp(shallow, nearShore * 0.45);
-      colors.setXYZ(index, color.r, color.g, color.b);
-    }
-    colors.needsUpdate = true;
-  } finally { land.dispose(); }
+  const weights = shorelineWeights(geometry);
+  for (let index = 0; index < positions.count; index++) {
+    const x = positions.getX(index);
+    const z = -positions.getY(index) - 26;
+    const variation = 0.25 + Math.sin(x * 0.18 + z * 0.12) * 0.045 + Math.cos(z * 0.29 - x * 0.1) * 0.03;
+    color.copy(base).lerp(deep, variation).lerp(shallow, weights[index]!);
+    colors.setXYZ(index, color.r, color.g, color.b);
+  }
+  colors.needsUpdate = true;
 }
 
 /** Small irregular details, masked against land once rather than queried per frame. */

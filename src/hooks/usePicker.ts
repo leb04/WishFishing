@@ -4,6 +4,7 @@ import {
   addNumberRange,
   completeDraw,
   editEntry,
+  emptyState,
   eligibleEntries,
   restorePool,
 } from "../lib/picker";
@@ -11,8 +12,15 @@ import { selectWinner } from "../lib/random";
 import { loadState, saveState } from "../lib/storage";
 import type { Draw, PickerState, ThemePreference } from "../types/picker";
 
-export function usePicker() {
-  const [loaded] = useState(loadState);
+export function usePicker(developerMode = false) {
+  const [loaded] = useState(() => developerMode ? {
+    state: {
+      ...emptyState(),
+      entries: ["007", "014", "025", "042", "063", "091"].map(name => ({ id: `test-${name}`, name, removed: false })),
+      removeCaught: false,
+    },
+    notice: "",
+  } : loadState());
   const [state, setState] = useState(loaded.state);
   const [notice, setNotice] = useState(loaded.notice);
   const [error, setError] = useState("");
@@ -23,7 +31,7 @@ export function usePicker() {
   function commit(next: PickerState) {
     stateRef.current = next;
     setState(next);
-    setNotice(saveState(next));
+    if (!developerMode) setNotice(saveState(next));
   }
 
   function update(transform: (previous: PickerState) => PickerState, onError: (message: string) => void = setError): boolean {
@@ -48,7 +56,7 @@ export function usePicker() {
       // Selection happens outside React updaters and before any result presentation.
       const current = stateRef.current;
       const candidates = eligibleEntries(current);
-      const winner = selectWinner(candidates);
+      const winner = developerMode ? candidates[0] : selectWinner(candidates);
       if (!winner) {
         setError("No eligible names. Add names or restore the fishing pool.");
         return;

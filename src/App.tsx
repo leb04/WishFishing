@@ -8,13 +8,24 @@ import { Result } from "./components/Result";
 import { usePicker } from "./hooks/usePicker";
 import { useFishingCinematic } from "./hooks/useFishingCinematic";
 import { useTheme } from "./hooks/useTheme";
+import { ESCAPE_POINTS, type EscapePoint } from "./lib/cinematic";
 import type { ThemePreference } from "./types/picker";
 
-export default function App() {
-  const picker = usePicker();
+const ESCAPE_SHOT_LABELS: Record<EscapePoint, string> = {
+  early: "Underwater · first tug",
+  midway: "Underwater · late struggle",
+  rod: "Above water · rod and line",
+  surface: "Waterline · before lift",
+  breach: "Airborne · after the fish clears the water",
+};
+
+export default function App({ developerMode = false }: { developerMode?: boolean }) {
+  const picker = usePicker(developerMode);
+  const [testMisses, setTestMisses] = useState(1);
+  const [testEscapePoints, setTestEscapePoints] = useState<EscapePoint[]>(["breach", "rod", "midway"]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const theme = useTheme(picker.state.theme);
-  const { lifecycle, phase, busy, soundEnabled, unlockSound, toggleSound } = useFishingCinematic();
+  const { lifecycle, phase, busy, soundEnabled, unlockSound, toggleSound } = useFishingCinematic(developerMode);
   const revealing = phase === "REVEALING";
   const showTension = busy && !revealing;
   const tensionOverlay = useRef<HTMLDivElement>(null);
@@ -37,7 +48,8 @@ export default function App() {
   const biteLabel = phase === "BITING" ? lifecycle.draw?.name
     : phase === "DECOY_BITE" || escaped ? lifecycle.decoy?.label : undefined;
   const cast = (again = false) => {
-    if (lifecycle.start(() => picker.cast(again), again)) unlockSound();
+    const escapePlan = developerMode ? testEscapePoints.slice(0, testMisses) : undefined;
+    if (lifecycle.start(() => picker.cast(again), again, escapePlan)) unlockSound();
   };
   const close = () => { if (lifecycle.close()) picker.closeResult(); };
 
@@ -59,7 +71,7 @@ export default function App() {
           </span>
           <div>
             <h1>WishFishing</h1>
-            <p>Cast a Wish. Catch a Winner.</p>
+            <p>{developerMode ? "Developer Mode" : "Cast a Wish. Catch a Winner."}</p>
           </div>
         </div>
         <div className="toolbar">
@@ -97,7 +109,7 @@ export default function App() {
 
       <main className="workspace">
         <section className="pond" aria-labelledby="pond-title" data-fishing-phase={phase}>
-          <PondView theme={theme} suspended={phase === "RESULT"}
+          <PondView theme={theme} suspended={phase === "RESULT"} developerMode={developerMode}
             lifecycle={lifecycle} phase={phase} soundEnabled={soundEnabled} onToggleSound={toggleSound}>
             {showTension && <div ref={tensionOverlay} className="cinematic-tension" aria-hidden="true" />}
             {biteLabel && (
@@ -169,36 +181,65 @@ export default function App() {
         </section>
 
         <aside className="side-dock" aria-label="Fishing controls" inert={busy}>
-          <PoolEditor
-            entries={picker.state.entries}
-            eligibleCount={picker.eligibleCount}
-            onAdd={picker.add}
-            onAddRange={picker.addRange}
-            onEdit={picker.edit}
-            onRemove={picker.remove}
-            onRestore={picker.restore}
-          />
-          <section
-            className="panel setting-panel"
-            aria-labelledby="settings-title"
-          >
-            <h2 id="settings-title">
-              Cast settings
-            </h2>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={picker.state.removeCaught}
-                onChange={(event) =>
-                  picker.setRemoveCaught(event.target.checked)
-                }
+          {developerMode ? (
+            <section className="panel setting-panel developer-panel" aria-labelledby="developer-title">
+              <h2 id="developer-title">Cinematic controls</h2>
+              <p className="help">Ticket 007 wins each test cast. Select the same shot twice to test consecutive escapes without a cut.</p>
+              <fieldset disabled={phase !== "IDLE"}>
+                <label>
+                  Escapes before the catch
+                  <select value={testMisses} onChange={(event) => setTestMisses(Number(event.target.value))}>
+                    {[0, 1, 2, 3].map(count => <option key={count} value={count}>{count}</option>)}
+                  </select>
+                </label>
+                {testEscapePoints.slice(0, testMisses).map((point, index) => (
+                  <label key={index}>
+                    Escape {index + 1} shot
+                    <select value={point} onChange={(event) => {
+                      const selected = event.target.value as EscapePoint;
+                      setTestEscapePoints(points => points.map((point, slot) => slot === index ? selected : point));
+                    }}>
+                      {ESCAPE_POINTS.map(shot => <option key={shot} value={shot}>{ESCAPE_SHOT_LABELS[shot]}</option>)}
+                    </select>
+                  </label>
+                ))}
+              </fieldset>
+              <a href={window.location.pathname}>Exit Developer Mode</a>
+            </section>
+          ) : (
+            <>
+              <PoolEditor
+                entries={picker.state.entries}
+                eligibleCount={picker.eligibleCount}
+                onAdd={picker.add}
+                onAddRange={picker.addRange}
+                onEdit={picker.edit}
+                onRemove={picker.remove}
+                onRestore={picker.restore}
               />
-              <span>Remove Caught Names</span>
-            </label>
-            <p className="help">
-              Keep each winner in the list and exclude that entry from future casts.
-            </p>
-          </section>
+              <section
+                className="panel setting-panel"
+                aria-labelledby="settings-title"
+              >
+                <h2 id="settings-title">
+                  Cast settings
+                </h2>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={picker.state.removeCaught}
+                    onChange={(event) =>
+                      picker.setRemoveCaught(event.target.checked)
+                    }
+                  />
+                  <span>Remove Caught Names</span>
+                </label>
+                <p className="help">
+                  Keep each winner in the list and exclude that entry from future casts.
+                </p>
+              </section>
+            </>
+          )}
           <History
             draws={picker.state.history}
             onClear={picker.clearHistory}
@@ -212,7 +253,7 @@ export default function App() {
         {picker.notice && <p role="status">{picker.notice}</p>}
       </div>
       <footer className="app-footer">
-        Names and catches stay in this browser.
+        {developerMode ? "Test catches reset when you reload." : "Names and catches stay in this browser."}
       </footer>
     </div>
   );

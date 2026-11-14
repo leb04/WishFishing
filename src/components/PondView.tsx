@@ -19,8 +19,8 @@ class SceneBoundary extends Component<{ children: ReactNode; onFailure: () => vo
   render() { return this.state.failed ? <PondPlaceholder lighting={this.props.lighting} /> : this.props.children; }
 }
 
-export function PondView({ theme, suspended, lifecycle, phase, soundEnabled, onToggleSound, children }: {
-  theme: SceneTheme; suspended: boolean; lifecycle: FishingLifecycle; phase: FishingPhase; soundEnabled: boolean; onToggleSound: () => void;
+export function PondView({ theme, suspended, developerMode, lifecycle, phase, soundEnabled, onToggleSound, children }: {
+  theme: SceneTheme; suspended: boolean; developerMode: boolean; lifecycle: FishingLifecycle; phase: FishingPhase; soundEnabled: boolean; onToggleSound: () => void;
   children: ReactNode;
 }) {
   const host = useRef<HTMLDivElement>(null);
@@ -36,7 +36,7 @@ export function PondView({ theme, suspended, lifecycle, phase, soundEnabled, onT
   }, []);
   const fallback = still || failed;
   const busy = isFishing(phase);
-  const { preference, time, select } = usePondTime(theme, false, busy || suspended);
+  const { preference, time, select } = usePondTime(theme, developerMode, busy || suspended);
   const lighting = preference === "appearance" && (busy || suspended) ? "dark"
     : time === "day" ? "light" : time === "night" ? "dark" : time;
   useEffect(() => { if (busy && (fallback || !ready || paused)) lifecycle.skip(); }, [busy, fallback, ready, paused, lifecycle]);

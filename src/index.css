@@ -997,3 +997,20 @@ textarea::placeholder {
 .cast-dock[inert] { opacity: 0.55; }
 .scene-tools [hidden] { display: none; }
 .side-dock[inert] { opacity: 0.45; }
+
+.developer-panel fieldset {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.developer-panel .help { margin: 0 0 12px; }
+.developer-panel label {
+  display: grid;
+  gap: 0.28rem;
+  font-size: 0.875rem;
+}
+.developer-panel select { width: 100%; }
+.developer-panel a { color: inherit; font-size: 0.875rem; }

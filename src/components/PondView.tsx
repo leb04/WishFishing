@@ -43,8 +43,7 @@ export function PondView({ theme, suspended, developerMode, lifecycle, phase, so
   const fallback = still || failed;
   const busy = isFishing(phase);
   const { preference, time, select } = usePondTime(theme, developerMode, busy || suspended);
-  const lighting = preference === "appearance" && (busy || suspended) ? "dark"
-    : time === "day" ? "light" : time === "night" ? "dark" : time;
+  const lighting = time === "day" ? "light" : time === "night" ? "dark" : time;
   useEffect(() => { if (busy && (fallback || !ready || paused)) lifecycle.skip(); }, [busy, fallback, ready, paused, lifecycle]);
 
   function toggleStillView() {

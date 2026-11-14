@@ -25,6 +25,10 @@ describe("number ranges", () => {
     ["42-42", "42", "42", 1],
     ["0-0", "0", "0", 1],
     ["9007199254740990-9007199254740991", "9007199254740990", "9007199254740991", 2],
+    ["T100-T200", "T100", "T200", 101],
+    [" VIP01 - VIP100 ", "VIP001", "VIP100", 100],
+    ["ab007-ab007", "ab007", "ab007", 1],
+    ["票009-票010", "票009", "票010", 2],
   ] as const)("expands %s with matching ticket labels", (input, first, last, count) => {
     const { entries } = addNumberRange(emptyState(), input, makeIds());
     expect(entries).toHaveLength(count);
@@ -40,6 +44,19 @@ describe("number ranges", () => {
     },
   );
 
+  it.each(["T1-U3", "T1-3", "1-T3", "T1-t3"])("rejects unmatched ticket prefixes in %s", (input) => {
+    expect(() => addNumberRange(emptyState(), input, makeIds())).toThrow(/same prefix/i);
+  });
+
+  it("counts the prefix toward the ticket label limit", () => {
+    const prefix = "T".repeat(119);
+    const id = makeIds();
+    const { entries } = addNumberRange(emptyState(), `${prefix}1-${prefix}2`, id);
+    expect(entries.map(({ name }) => name)).toEqual([`${prefix}1`, `${prefix}2`]);
+    expect(() => addNumberRange(emptyState(), `${prefix}09-${prefix}10`, id)).toThrow(/120 characters/);
+    expect(id()).toBe("entry-3");
+  });
+
   it("checks total capacity, including caught entries, before allocating IDs", () => {
     const id = makeIds();
     const full = addNumberRange(emptyState(), "1-1000", id);
@@ -47,19 +64,20 @@ describe("number ranges", () => {
     const previous = JSON.stringify(state);
     expect(state.entries).toHaveLength(MAX_ENTRIES);
     expect(() => addNumberRange(state, "1-1", id)).toThrow(/1,000/);
+    expect(() => addNumberRange(state, "T1-T1", id)).toThrow(/1,000/);
     expect(() => addNumberRange(emptyState(), "0-9007199254740991", id)).toThrow(/1,000/);
     expect(JSON.stringify(state)).toBe(previous);
     expect(id()).toBe("entry-1001");
   });
 
-  it("keeps a caught ticket's printed label in the persisted pool and log", () => {
-    const state = addNumberRange({ ...emptyState(), removeCaught: true }, "007-008", makeIds());
+  it.each([["007-008", "007"], ["T007-T008", "T007"]])("keeps a caught ticket's printed label for %s", (range, label) => {
+    const state = addNumberRange({ ...emptyState(), removeCaught: true }, range, makeIds());
     const drawn = completeDraw(state, state.entries[0]!, "draw", "2026-11-13T00:00:00Z");
     let data: string | null = null;
     const storage = { getItem: () => data, setItem: (_key: string, value: string) => { data = value; } };
     saveState(drawn, storage);
     expect(loadState(storage).state).toEqual(drawn);
-    expect(drawn.history[0]?.name).toBe("007");
+    expect(drawn.history[0]?.name).toBe(label);
     expect(drawn.entries.map(({ removed }) => removed)).toEqual([true, false]);
   });
 });

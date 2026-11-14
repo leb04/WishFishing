@@ -47,10 +47,11 @@ export function addNames(
 }
 
 export function addNumberRange(state: PickerState, text: string, makeId: () => string): PickerState {
-  const match = /^(\d+)[ \t]*-[ \t]*(\d+)$/.exec(text.trim());
-  if (!match) throw new Error("Enter a number range such as 200-300.");
+  const match = /^(\p{L}*)(\d+)[ \t]*-[ \t]*(\p{L}*)(\d+)$/u.exec(text.trim());
+  if (!match) throw new Error("Enter a range such as 200-300 or T100-T200.");
 
-  const [, first = "", last = ""] = match;
+  const [, prefix = "", first = "", endPrefix = "", last = ""] = match;
+  if (prefix !== endPrefix) throw new Error("Use the same prefix at both ends, such as T100-T200.");
   const start = Number(first);
   const end = Number(last);
   if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) {
@@ -62,11 +63,11 @@ export function addNumberRange(state: PickerState, text: string, makeId: () => s
   validatePoolCapacity(state, count);
   const padded = first.length > String(start).length || last.length > String(end).length;
   const width = padded ? Math.max(first.length, last.length) : 0;
-  if (Math.max(width, last.length) > MAX_NAME_LENGTH) {
+  if ([...prefix].length + Math.max(width, last.length) > MAX_NAME_LENGTH) {
     throw new Error(`Ticket labels can be up to ${MAX_NAME_LENGTH} characters.`);
   }
 
-  const labels = Array.from({ length: count }, (_, index) => String(start + index).padStart(width, "0"));
+  const labels = Array.from({ length: count }, (_, index) => prefix + String(start + index).padStart(width, "0"));
   return appendEntries(state, labels, makeId);
 }
 

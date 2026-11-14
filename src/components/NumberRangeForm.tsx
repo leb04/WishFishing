@@ -35,7 +35,7 @@ export function NumberRangeForm({ onAdd }: { onAdd: (text: string) => { added: n
           setStatus("");
         }}
       />
-      <p id="range-help" className="help">Both endpoints are included. Leading zeros are kept.</p>
+      <p id="range-help" className="help">Try 200-300 or T100-T200. Use the same letter prefix at both ends. Both endpoints and leading zeros are kept.</p>
       {error && <p id="range-error" className="help field-error" role="alert">{error}</p>}
       <button className="secondary-button full-width" type="submit" disabled={!text.trim()}>
         Add range

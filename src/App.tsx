@@ -98,8 +98,9 @@ export default function App({ developerMode = false }: { developerMode?: boolean
           </div>
         </div>
         <div className="toolbar">
-          <label className="theme-control">
-            <span>Appearance</span>
+          <label className="toolbar-select theme-control">
+            <ControlIcon name="appearance" />
+            <span aria-hidden="true">Appearance</span>
             <select
               aria-label="Appearance"
               value={picker.state.theme}

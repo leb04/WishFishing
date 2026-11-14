@@ -9,6 +9,8 @@ const paths = {
   scene: <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></>,
   expand: <path d="M9 4H4v5m11-5h5v5m0 6v5h-5m-6 0H4v-5" />,
   shrink: <path d="M4 9h5V4m6 0v5h5m0 6h-5v5m-6 0v-5H4" />,
+  appearance: <><circle cx="12" cy="12" r="8" /><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none" /></>,
+  clock: <><circle cx="12" cy="12" r="8" /><path d="M12 7.5v5l3 2" /></>,
 };
 
 export function ControlIcon({ name }: { name: keyof typeof paths }) {

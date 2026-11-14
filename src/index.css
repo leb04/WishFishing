@@ -153,17 +153,6 @@ select {
   gap: 8px;
   align-items: center;
 }
-.theme-control,
-.pond-time-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  color: var(--muted-foreground);
-  font-size: 13px;
-}
-.pond-time-control > span { white-space: nowrap; }
-.pond-time-select { min-width: 0; text-overflow: ellipsis; }
 .control-icon {
   display: block;
   flex: none;
@@ -203,6 +192,46 @@ select option {
   background: var(--card);
   color: var(--card-foreground);
 }
+.toolbar-select {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+.toolbar-select > span,
+.toolbar-select > .control-icon {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
+.toolbar-select > .control-icon {
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.toolbar-select > span {
+  left: 36px;
+  top: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.toolbar-select > select {
+  display: block;
+  width: 100%;
+  padding: 18px 28px 4px 35px;
+  border-color: var(--border);
+  background-color: var(--card);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+.toolbar-select > select:not(:disabled):hover {
+  border-color: var(--field-border);
+  background-color: var(--control-surface);
+}
+.theme-control { width: 126px; }
+.pond-time-control { width: 204px; }
 @media (forced-colors: active) {
   select { appearance: auto; background-image: none; }
 }
@@ -746,8 +775,9 @@ textarea::placeholder {
   }
 }
 @media (max-width: 600px) {
-  .theme-control > span,
-  .pond-time-control > span { display: none; }
+  .toolbar-select > span { display: none; }
+  .toolbar-select > select { padding-block: 6px; font-size: 13px; }
+  .theme-control { width: 110px; }
   .cast-dock { grid-template-columns: minmax(0, 1fr) auto; }
   .cast-dock[data-empty="true"] .cast-actions { display: flex; grid-column: 1 / -1; }
   .cast-dock[data-empty="true"] .cast-status { grid-column: 1 / -1; }
@@ -854,8 +884,7 @@ textarea::placeholder {
   background: color-mix(in srgb, var(--card-foreground) 10%, var(--card));
 }
 @media (max-width: 600px) {
-  .pond-time-control { flex: 1; max-width: 180px; }
-  .pond-time-select { width: 100%; max-width: 180px; font-size: 13px; }
+  .pond-time-control { flex: 1; max-width: 204px; }
   .scene-tools { gap: 4px; }
 }
 @media (max-width: 480px) {

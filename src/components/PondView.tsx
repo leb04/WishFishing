@@ -61,8 +61,9 @@ export function PondView({ theme, suspended, developerMode, lifecycle, phase, so
     <div className="pond-header">
       <h2 id="pond-title">The wishing pond</h2>
       <div className="scene-tools" role="group" aria-label="Pond view controls">
-        <label className="pond-time-control" hidden={busy}>
-          <span>Pond time</span>
+        <label className="toolbar-select pond-time-control" hidden={busy}>
+          <ControlIcon name="clock" />
+          <span aria-hidden="true">Pond time</span>
           <select className="pond-time-select" aria-label="Pond time" value={preference}
             onChange={event => select(event.target.value as PondTimePreference)}>
             <option value="appearance">Match appearance</option>

@@ -10,6 +10,7 @@ interface Props {
   onAddRange: (text: string) => { added: number } | { error: string };
   onEdit: (id: string, name: string, onError: (message: string) => void) => boolean;
   onRemove: (id: string) => void;
+  onRemoveAll: () => boolean;
   onRestore: () => void;
 }
 
@@ -122,17 +123,20 @@ export function PoolEditor({
   onAddRange,
   onEdit,
   onRemove,
+  onRemoveAll,
   onRestore,
 }: Props) {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [open, setOpen] = useState(entries.length === 0);
   const [inputMode, setInputMode] = useState<"names" | "range">("names");
+  const removeDialog = useRef<HTMLDialogElement>(null);
+  const poolSummary = useRef<HTMLElement>(null);
 
   return (
     <details id="fishing-pool" className="panel pool-panel" open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary>
+      <summary ref={poolSummary}>
         <strong>Fishing Pool</strong>
         <span className="count-badge">
           <strong>{eligibleCount.toLocaleString()}</strong> eligible
@@ -209,8 +213,25 @@ export function PoolEditor({
               />
             ))}
           </ol>
+          <div className="pool-bulk-actions">
+            <button className="text-button destructive-button" type="button" onClick={() => removeDialog.current?.showModal()}>
+              Remove all names
+            </button>
+          </div>
         </>}
       </div>
+      <dialog className="pool-remove-dialog" ref={removeDialog} aria-labelledby="remove-pool-title" aria-describedby="remove-pool-description">
+        <h2 id="remove-pool-title">Remove all names?</h2>
+        <p id="remove-pool-description" className="help">This removes all names and ticket numbers from the pool. Your Catch Log is kept.</p>
+        <form method="dialog" className="row-actions">
+          <button className="secondary-button" type="submit" autoFocus>Cancel</button>
+          <button className="primary-button" type="button" onClick={() => {
+            if (!onRemoveAll()) return;
+            removeDialog.current?.close();
+            poolSummary.current?.focus();
+          }}>Remove all names</button>
+        </form>
+      </dialog>
     </details>
   );
 }

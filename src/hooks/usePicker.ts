@@ -106,6 +106,7 @@ export function usePicker(developerMode = false) {
         ...previous,
         entries: previous.entries.filter((entry) => entry.id !== id),
       })),
+    removeAll: () => update((previous) => ({ ...previous, entries: [] })),
     restore: () => update(restorePool),
     setRemoveCaught: (removeCaught: boolean) =>
       update((previous) => ({ ...previous, removeCaught })),

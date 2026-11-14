@@ -215,6 +215,7 @@ export default function App({ developerMode = false }: { developerMode?: boolean
                 onAddRange={picker.addRange}
                 onEdit={picker.edit}
                 onRemove={picker.remove}
+                onRemoveAll={picker.removeAll}
                 onRestore={picker.restore}
               />
               <section

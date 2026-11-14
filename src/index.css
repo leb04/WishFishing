@@ -482,6 +482,24 @@ textarea::placeholder {
   color: var(--muted-foreground);
   scroll-margin-block: 16px;
 }
+.pool-bulk-actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+.text-button.destructive-button { color: var(--error-ink); }
+.pool-remove-dialog {
+  width: min(400px, calc(100% - 32px));
+  margin: auto;
+  padding: 20px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+.pool-remove-dialog::backdrop { background: #05070db3; }
+.pool-remove-dialog h2 { font-weight: 650; }
+.pool-remove-dialog .row-actions { justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .text-button {
   border: 0;
   padding: 6px 4px;

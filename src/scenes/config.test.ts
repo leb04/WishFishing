@@ -29,9 +29,10 @@ describe("first-person framing", () => {
   });
 
   it("keeps daylight and night palettes independent and complete", () => {
-    expect(Object.keys(SCENE_PALETTES.light).sort()).toEqual(Object.keys(SCENE_PALETTES.dark).sort());
-    expect(SCENE_PALETTES.light.sky).not.toBe(SCENE_PALETTES.dark.sky);
-    expect(SCENE_PALETTES.light.water).not.toBe(SCENE_PALETTES.dark.water);
+    const palettes = Object.values(SCENE_PALETTES);
+    for (const palette of palettes) expect(Object.keys(palette).sort()).toEqual(Object.keys(SCENE_PALETTES.light).sort());
+    expect(new Set(palettes.map(palette => palette.sky)).size).toBe(palettes.length);
+    expect(new Set(palettes.map(palette => palette.water)).size).toBe(palettes.length);
   });
 });
 

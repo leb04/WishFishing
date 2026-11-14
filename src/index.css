@@ -735,3 +735,5 @@ textarea::placeholder {
 
 .number-range-form { margin-top: 16px; }
 .range-status:empty { margin: 0; }
+
+.pond-time-select { max-width: 100%; }

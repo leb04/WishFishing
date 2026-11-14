@@ -3,12 +3,12 @@ import { PCFShadowMap } from "three";
 import { Canvas, useThree } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import { CAMERA, getFraming, SCENE_PALETTES } from "./config";
-import type { SceneTheme } from "./config";
+import type { SceneLighting } from "./config";
 import { Environment } from "./Environment";
 import { FishingRig } from "./FishingRig";
 import { Water } from "./Water";
 
-function SceneContents({ theme, animate, onFailure }: { theme: SceneTheme; animate: boolean; onFailure: () => void }) {
+function SceneContents({ theme, animate, onFailure }: { theme: SceneLighting; animate: boolean; onFailure: () => void }) {
   const { size, gl } = useThree();
   const framing = useMemo(() => getFraming(size.width / Math.max(1, size.height)), [size.width, size.height]);
   const palette = SCENE_PALETTES[theme];
@@ -33,13 +33,13 @@ function SceneContents({ theme, animate, onFailure }: { theme: SceneTheme; anima
       fov={framing.fov}
       onUpdate={(camera) => camera.lookAt(...CAMERA.target)}
     />
-    <Environment palette={palette} night={theme === "dark"} />
+    <Environment lighting={theme} animate={animate} />
     <Water palette={palette} animate={animate} />
     <FishingRig palette={palette} origin={framing.rodOrigin} animate={animate} />
   </>;
 }
 
-export default function FishingScene({ theme, animate, onFailure }: { theme: SceneTheme; animate: boolean; onFailure: () => void }) {
+export default function FishingScene({ theme, animate, onFailure }: { theme: SceneLighting; animate: boolean; onFailure: () => void }) {
   return (
     <Canvas
       shadows={{ type: PCFShadowMap }}

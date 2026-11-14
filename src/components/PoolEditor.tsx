@@ -1,15 +1,14 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { Entry } from "../types/picker";
 import { MAX_ENTRIES, MAX_NAME_LENGTH, MAX_PASTE_LENGTH } from "../lib/picker";
-
 import { NumberRangeForm } from "./NumberRangeForm";
 
 interface Props {
   entries: Entry[];
   eligibleCount: number;
-  onAdd: (text: string) => boolean;
+  onAdd: (text: string, onError: (message: string) => void) => boolean;
   onAddRange: (text: string) => { added: number } | { error: string };
-  onEdit: (id: string, name: string) => boolean;
+  onEdit: (id: string, name: string, onError: (message: string) => void) => boolean;
   onRemove: (id: string) => void;
   onRestore: () => void;
 }
@@ -27,6 +26,22 @@ function EntryRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(entry.name);
+  const [error, setError] = useState("");
+  const editButton = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  const errorId = `entry-error-${entry.id}`;
+
+  useLayoutEffect(() => {
+    if (editing || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    editButton.current?.focus();
+  }, [editing]);
+
+  function finishEditing() {
+    restoreFocus.current = true;
+    setError("");
+    setEditing(false);
+  }
   return (
     <li className="entry-row">
       {editing ? (
@@ -34,7 +49,7 @@ function EntryRow({
           className="entry-edit"
           onSubmit={(event) => {
             event.preventDefault();
-            if (onEdit(entry.id, value)) setEditing(false);
+            if (onEdit(entry.id, value, setError)) finishEditing();
           }}
         >
           <label className="sr-only" htmlFor={`entry-${entry.id}`}>
@@ -43,10 +58,16 @@ function EntryRow({
           <input
             id={`entry-${entry.id}`}
             value={value}
-            onChange={(event) => setValue(event.target.value)}
+            onChange={(event) => {
+              setValue(event.target.value);
+              setError("");
+            }}
             maxLength={MAX_NAME_LENGTH * 2}
+            aria-invalid={!!error || undefined}
+            aria-describedby={error ? errorId : undefined}
             autoFocus
           />
+          {error && <p id={errorId} className="help field-error" role="alert">{error}</p>}
           <div className="row-actions">
             <button type="submit" className="text-button">
               Save
@@ -56,7 +77,7 @@ function EntryRow({
               className="text-button"
               onClick={() => {
                 setValue(entry.name);
-                setEditing(false);
+                finishEditing();
               }}
             >
               Cancel
@@ -65,30 +86,28 @@ function EntryRow({
         </form>
       ) : (
         <>
-          <span className="entry-number">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <span className="entry-name">
+          <span className="entry-name" data-caught={entry.removed}>
             {entry.name}
             <small>{entry.removed ? "Caught" : "Eligible"}</small>
           </span>
           <button
+            ref={editButton}
             type="button"
-            className="icon-button"
+            className="text-button"
             aria-label={`Edit participant ${index + 1}: ${entry.name}`}
             title="Edit name"
             onClick={() => setEditing(true)}
           >
-            ✎
+            Edit
           </button>
           <button
             type="button"
-            className="icon-button"
+            className="text-button"
             aria-label={`Remove participant ${index + 1}: ${entry.name}`}
             title="Remove name"
             onClick={() => onRemove(entry.id)}
           >
-            ×
+            Remove
           </button>
         </>
       )}
@@ -106,23 +125,31 @@ export function PoolEditor({
   onRestore,
 }: Props) {
   const [text, setText] = useState("");
+  const [error, setError] = useState("");
+  const [open, setOpen] = useState(entries.length === 0);
+  const [inputMode, setInputMode] = useState<"names" | "range">("names");
+
   return (
-    <details className="panel pool-panel">
+    <details id="fishing-pool" className="panel pool-panel" open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>
-        <span>
-          <span className="eyebrow">Your participants</span>
-          <strong>Fishing Pool</strong>
-        </span>
+        <strong>Fishing Pool</strong>
         <span className="count-badge">
-          {eligibleCount}
-          <span className="sr-only"> eligible names</span>
+          <strong>{eligibleCount.toLocaleString()}</strong> eligible
         </span>
       </summary>
       <div className="panel-content">
-        <form
+        <div className="pool-modes" role="group" aria-label="How to add entries">
+          <button type="button" aria-pressed={inputMode === "names"} onClick={() => setInputMode("names")}>Names</button>
+          <button type="button" aria-pressed={inputMode === "range"} onClick={() => setInputMode("range")}>Number range</button>
+        </div>
+        <form data-pool-input hidden={inputMode !== "names"}
           onSubmit={(event) => {
             event.preventDefault();
-            if (onAdd(text)) setText("");
+            if (onAdd(text, setError)) {
+              setText("");
+              setError("");
+            }
           }}
         >
           <label htmlFor="names">Add names, one per line</label>
@@ -130,40 +157,47 @@ export function PoolEditor({
             id="names"
             rows={5}
             value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder={"Alex\nSam\nAlex"}
+            onChange={(event) => {
+              setText(event.target.value);
+              setError("");
+            }}
+            placeholder={"Alex\nSam\nJordan"}
             maxLength={MAX_PASTE_LENGTH}
-            aria-describedby="pool-help"
+            aria-invalid={!!error || undefined}
+            aria-describedby={error ? "pool-help pool-error" : "pool-help"}
           />
-          <p id="pool-help" className="help">
-            Up to {MAX_ENTRIES.toLocaleString()} names · {MAX_NAME_LENGTH}{" "}
-            characters each. Blank lines are ignored; duplicates count
-            separately.
-          </p>
+          <p id="pool-help" className="help">Up to {MAX_NAME_LENGTH} characters per name. Duplicates count separately.</p>
+          {error && <p id="pool-error" className="help field-error" role="alert">{error}</p>}
           <button
             className="secondary-button full-width"
             type="submit"
             disabled={!text.trim()}
           >
-            Add to Pool
+            Add names
           </button>
         </form>
-        <NumberRangeForm onAdd={onAddRange} />
+        <div data-pool-input hidden={inputMode !== "range"}>
+          <NumberRangeForm onAdd={onAddRange} />
+        </div>
         <div className="pool-count">
           <span>
-            {eligibleCount} eligible / {entries.length} total
+            {entries.length.toLocaleString()} / {MAX_ENTRIES.toLocaleString()} entries
           </span>
-          <button
+          {eligibleCount < entries.length && <button
             className="text-button"
             type="button"
-            disabled={!entries.some((entry) => entry.removed)}
-            onClick={onRestore}
+            onClick={(event) => {
+              event.currentTarget.closest("details")?.querySelector("summary")?.focus();
+              onRestore();
+            }}
           >
             Restore pool
-          </button>
+          </button>}
         </div>
-        <p className="help">Restore makes every caught name eligible again.</p>
-        {entries.length ? (
+        {eligibleCount < entries.length && (
+          <p className="help">Restore makes every caught entry eligible again.</p>
+        )}
+        {entries.length > 0 && <>
           <ol className="entry-list" aria-label="Participants">
             {entries.map((entry, index) => (
               <EntryRow
@@ -175,11 +209,7 @@ export function PoolEditor({
               />
             ))}
           </ol>
-        ) : (
-          <p className="empty-copy">
-            An empty pool, full of possibilities. Add a few names to begin.
-          </p>
-        )}
+        </>}
       </div>
     </details>
   );

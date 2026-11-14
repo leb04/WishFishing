@@ -80,8 +80,8 @@ export function usePicker() {
     error,
     notice,
     eligibleCount: eligibleEntries(state).length,
-    add: (text: string) =>
-      update((previous) => addNames(previous, text, () => crypto.randomUUID())),
+    add: (text: string, onError: (message: string) => void) =>
+      update((previous) => addNames(previous, text, () => crypto.randomUUID()), onError),
     addRange: (text: string): { added: number } | { error: string } => {
       const count = stateRef.current.entries.length;
       let message = "Finish the current catch before adding entries.";
@@ -91,8 +91,8 @@ export function usePicker() {
       );
       return added ? { added: stateRef.current.entries.length - count } : { error: message };
     },
-    edit: (id: string, name: string) =>
-      update((previous) => editEntry(previous, id, name)),
+    edit: (id: string, name: string, onError: (message: string) => void) =>
+      update((previous) => editEntry(previous, id, name), onError),
     remove: (id: string) =>
       update((previous) => ({
         ...previous,
@@ -102,7 +102,7 @@ export function usePicker() {
     setRemoveCaught: (removeCaught: boolean) =>
       update((previous) => ({ ...previous, removeCaught })),
     setTheme: (theme: ThemePreference) =>
-      update((previous) => ({ ...previous, theme })),
+      commit({ ...stateRef.current, theme }),
     clearHistory: () => update((previous) => ({ ...previous, history: [] })),
     cast,
     closeResult: () => {

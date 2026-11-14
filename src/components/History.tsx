@@ -19,14 +19,10 @@ export function History({
       onToggle={(event) => onToggle(event.currentTarget.open)}
     >
       <summary>
-        <span>
-          <span className="eyebrow">Previous catches</span>
-          <strong>Catch Log</strong>
-        </span>
-        <span className="count-badge">{draws.length}</span>
+        <strong>Catch Log</strong>
+        <span className="count-badge"><strong>{draws.length}</strong> {draws.length === 1 ? "catch" : "catches"}</span>
       </summary>
       <div className="panel-content">
-        <p className="help">The latest 100 catches, saved on this browser.</p>
         {draws.length ? (
           <ol className="history-list" aria-label="Draw history">
             {draws.map((draw) => (
@@ -43,17 +39,16 @@ export function History({
           </ol>
         ) : (
           <p className="empty-copy">
-            No catches yet. Your next cast starts the story.
+            Your first catch will appear here.
           </p>
         )}
-        <button
+        {draws.length > 0 && <button
           type="button"
           className="text-button"
           onClick={onClear}
-          disabled={!draws.length}
         >
           Clear history
-        </button>
+        </button>}
       </div>
     </details>
   );

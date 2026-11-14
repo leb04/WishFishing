@@ -36,7 +36,10 @@ export function Result({
       queueMicrotask(() => {
         if (element?.isConnected || !document.querySelector('.pond[data-fishing-phase="IDLE"]')) return;
         const castButton = document.querySelector<HTMLButtonElement>("#cast-line:enabled");
-        (castButton ?? document.querySelector<HTMLElement>(".pool-panel > summary"))?.focus();
+        const poolTarget = document.fullscreenElement
+          ? document.querySelector<HTMLElement>(".pool-cta")
+          : document.querySelector<HTMLElement>(".pool-panel > summary");
+        (castButton ?? poolTarget)?.focus();
       });
     };
   }, []);

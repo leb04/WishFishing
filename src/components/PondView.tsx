@@ -20,9 +20,9 @@ class SceneBoundary extends Component<{ children: ReactNode; onFailure: () => vo
   render() { return this.state.failed ? <PondPlaceholder lighting={this.props.lighting} /> : this.props.children; }
 }
 
-export function PondView({ theme, suspended, developerMode, lifecycle, phase, soundEnabled, onToggleSound, children }: {
+export function PondView({ theme, suspended, developerMode, lifecycle, phase, soundEnabled, onToggleSound, fullscreen, onToggleFullscreen, children }: {
   theme: SceneTheme; suspended: boolean; developerMode: boolean; lifecycle: FishingLifecycle; phase: FishingPhase; soundEnabled: boolean; onToggleSound: () => void;
-  children: ReactNode;
+  fullscreen: boolean; onToggleFullscreen: () => void; children: ReactNode;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -84,6 +84,10 @@ export function PondView({ theme, suspended, developerMode, lifecycle, phase, so
             aria-pressed={fallback} onClick={toggleStillView}>
             <ControlIcon name={fallback ? "scene" : "still"} />
           </button>
+          {document.fullscreenEnabled && <button type="button" aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+            title={fullscreen ? "Exit fullscreen" : "Fullscreen"} onClick={onToggleFullscreen}>
+            <ControlIcon name={fullscreen ? "shrink" : "expand"} />
+          </button>}
         </div>
       </div>
     </div>

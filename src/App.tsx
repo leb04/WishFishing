@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ControlIcon } from "./components/ControlIcon";
 import { PoolEditor } from "./components/PoolEditor";
@@ -24,11 +24,19 @@ export default function App({ developerMode = false }: { developerMode?: boolean
   const [testMisses, setTestMisses] = useState(1);
   const [testEscapePoints, setTestEscapePoints] = useState<EscapePoint[]>(["breach", "rod", "midway"]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState(false);
+  const pond = useRef<HTMLElement>(null);
   const theme = useTheme(picker.state.theme);
   const { lifecycle, phase, busy, soundEnabled, unlockSound, toggleSound } = useFishingCinematic(developerMode);
   const revealing = phase === "REVEALING";
   const showTension = busy && !revealing;
   const tensionOverlay = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const syncFullscreen = () => setFullscreen(document.fullscreenElement === pond.current);
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
   useLayoutEffect(() => {
     const overlay = tensionOverlay.current;
     if (!showTension || !overlay) return;
@@ -53,7 +61,22 @@ export default function App({ developerMode = false }: { developerMode?: boolean
   };
   const close = () => { if (lifecycle.close()) picker.closeResult(); };
 
-  function openPool() {
+  async function toggleFullscreen() {
+    const element = pond.current;
+    if (!element) return;
+    setFullscreenError(false);
+    try {
+      if (document.fullscreenElement === element) await document.exitFullscreen();
+      else await element.requestFullscreen();
+    } catch {
+      setFullscreenError(true);
+    }
+  }
+
+  async function openPool() {
+    if (document.fullscreenElement === pond.current) {
+      try { await document.exitFullscreen(); } catch { return; }
+    }
     const panel = document.getElementById("fishing-pool");
     if (panel instanceof HTMLDetailsElement) {
       panel.open = true;
@@ -108,9 +131,11 @@ export default function App({ developerMode = false }: { developerMode?: boolean
       </header>
 
       <main className="workspace">
-        <section className="pond" aria-labelledby="pond-title" data-fishing-phase={phase}>
+        <section ref={pond} className="pond" aria-labelledby="pond-title" data-fishing-phase={phase}>
           <PondView theme={theme} suspended={phase === "RESULT"} developerMode={developerMode}
-            lifecycle={lifecycle} phase={phase} soundEnabled={soundEnabled} onToggleSound={toggleSound}>
+            lifecycle={lifecycle} phase={phase} soundEnabled={soundEnabled} onToggleSound={toggleSound}
+            fullscreen={fullscreen} onToggleFullscreen={toggleFullscreen}>
+            {fullscreenError && <p className="scene-status" role="status">Fullscreen is unavailable in this browser window.</p>}
             {showTension && <div ref={tensionOverlay} className="cinematic-tension" aria-hidden="true" />}
             {biteLabel && (
               <div key={`${phase}-${lifecycle.attempt}`} className="bite-card" data-escaped={escaped}

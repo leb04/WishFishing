@@ -99,6 +99,7 @@ export default function App() {
             entries={picker.state.entries}
             eligibleCount={picker.eligibleCount}
             onAdd={picker.add}
+            onAddRange={picker.addRange}
             onEdit={picker.edit}
             onRemove={picker.remove}
             onRestore={picker.restore}

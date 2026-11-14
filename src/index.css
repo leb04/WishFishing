@@ -370,6 +370,7 @@ label {
   font-weight: 500;
 }
 textarea,
+.number-range-form input,
 .entry-edit input {
   display: block;
   width: 100%;
@@ -731,3 +732,6 @@ textarea::placeholder {
   .scene-tools { margin: 0 12px; gap: 6px; }
   .scene-tools button { padding: 6px 8px; }
 }
+
+.number-range-form { margin-top: 16px; }
+.range-status:empty { margin: 0; }

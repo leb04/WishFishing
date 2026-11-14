@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import {
   addNames,
+  addNumberRange,
   completeDraw,
   editEntry,
   eligibleEntries,
@@ -25,14 +26,14 @@ export function usePicker() {
     setNotice(saveState(next));
   }
 
-  function update(transform: (previous: PickerState) => PickerState): boolean {
+  function update(transform: (previous: PickerState) => PickerState, onError: (message: string) => void = setError): boolean {
     try {
       if (resultRef.current) return false;
       commit(transform(stateRef.current));
       setError("");
       return true;
     } catch (cause) {
-      setError(
+      onError(
         cause instanceof Error
           ? cause.message
           : "Something went wrong. Please try again.",
@@ -79,6 +80,15 @@ export function usePicker() {
     eligibleCount: eligibleEntries(state).length,
     add: (text: string) =>
       update((previous) => addNames(previous, text, () => crypto.randomUUID())),
+    addRange: (text: string): { added: number } | { error: string } => {
+      const count = stateRef.current.entries.length;
+      let message = "Finish the current catch before adding entries.";
+      const added = update(
+        (previous) => addNumberRange(previous, text, () => crypto.randomUUID()),
+        (error) => { message = error; },
+      );
+      return added ? { added: stateRef.current.entries.length - count } : { error: message };
+    },
     edit: (id: string, name: string) =>
       update((previous) => editEntry(previous, id, name)),
     remove: (id: string) =>

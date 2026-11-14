@@ -2,10 +2,13 @@ import { useState } from "react";
 import type { Entry } from "../types/picker";
 import { MAX_ENTRIES, MAX_NAME_LENGTH, MAX_PASTE_LENGTH } from "../lib/picker";
 
+import { NumberRangeForm } from "./NumberRangeForm";
+
 interface Props {
   entries: Entry[];
   eligibleCount: number;
   onAdd: (text: string) => boolean;
+  onAddRange: (text: string) => { added: number } | { error: string };
   onEdit: (id: string, name: string) => boolean;
   onRemove: (id: string) => void;
   onRestore: () => void;
@@ -97,6 +100,7 @@ export function PoolEditor({
   entries,
   eligibleCount,
   onAdd,
+  onAddRange,
   onEdit,
   onRemove,
   onRestore,
@@ -144,6 +148,7 @@ export function PoolEditor({
             Add to Pool
           </button>
         </form>
+        <NumberRangeForm onAdd={onAddRange} />
         <div className="pool-count">
           <span>
             {eligibleCount} eligible / {entries.length} total

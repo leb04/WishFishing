@@ -43,12 +43,43 @@ export function addNames(
   text: string,
   makeId: () => string,
 ): PickerState {
-  const names = parseNames(text);
-  if (state.entries.length + names.length > MAX_ENTRIES) {
+  return appendEntries(state, parseNames(text), makeId);
+}
+
+export function addNumberRange(state: PickerState, text: string, makeId: () => string): PickerState {
+  const match = /^(\d+)[ \t]*-[ \t]*(\d+)$/.exec(text.trim());
+  if (!match) throw new Error("Enter a number range such as 200-300.");
+
+  const [, first = "", last = ""] = match;
+  const start = Number(first);
+  const end = Number(last);
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) {
+    throw new Error("Use whole numbers from 0 to 9,007,199,254,740,991.");
+  }
+  if (end < start) throw new Error("The range end must be at least the start.");
+
+  const count = end - start + 1;
+  validatePoolCapacity(state, count);
+  const padded = first.length > String(start).length || last.length > String(end).length;
+  const width = padded ? Math.max(first.length, last.length) : 0;
+  if (Math.max(width, last.length) > MAX_NAME_LENGTH) {
+    throw new Error(`Ticket labels can be up to ${MAX_NAME_LENGTH} characters.`);
+  }
+
+  const labels = Array.from({ length: count }, (_, index) => String(start + index).padStart(width, "0"));
+  return appendEntries(state, labels, makeId);
+}
+
+function validatePoolCapacity(state: PickerState, count: number) {
+  if (count > MAX_ENTRIES - state.entries.length) {
     throw new Error(
-      `The pool can contain up to ${MAX_ENTRIES} entries. No names were added.`,
+      `The pool can contain up to ${MAX_ENTRIES.toLocaleString("en-US")} entries. No entries were added.`,
     );
   }
+}
+
+function appendEntries(state: PickerState, names: string[], makeId: () => string): PickerState {
+  validatePoolCapacity(state, names.length);
   const ids = new Set(state.entries.map((entry) => entry.id));
   const entries = names.map((name) => {
     const id = makeId();

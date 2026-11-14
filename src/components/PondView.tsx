@@ -11,6 +11,7 @@ import type { FishingLifecycle, FishingPhase } from "../lib/cinematic";
 
 const FishingScene = lazy(() => import("../scenes/FishingScene"));
 const TIME_LABELS = { dawn: "Dawn", day: "Day", dusk: "Dusk", night: "Night" };
+const STILL_VIEW_KEY = "wishfishing:still-view";
 
 class SceneBoundary extends Component<{ children: ReactNode; onFailure: () => void; lighting: SceneLighting }, { failed: boolean }> {
   state = { failed: false };
@@ -26,7 +27,12 @@ export function PondView({ theme, suspended, developerMode, lifecycle, phase, so
   const host = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const onReady = useCallback(() => setReady(true), []);
-  const [still, setStill] = useState(false);
+  const [still, setStill] = useState(() => {
+    if (!developerMode) {
+      try { return localStorage.getItem(STILL_VIEW_KEY) === "on"; } catch { /* Use 3D by default. */ }
+    }
+    return false;
+  });
   const [failed, setFailed] = useState(false);
   const [paused, setPaused] = useState(false);
   const { reducedMotion, animate } = useSceneActivity(host, suspended, paused);
@@ -46,6 +52,9 @@ export function PondView({ theme, suspended, developerMode, lifecycle, phase, so
     setReady(false);
     setStill(next);
     setFailed(false);
+    if (!developerMode) {
+      try { localStorage.setItem(STILL_VIEW_KEY, next ? "on" : "off"); } catch { /* Keep the setting for this session. */ }
+    }
   }
 
   return <>

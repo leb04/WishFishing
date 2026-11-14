@@ -11,6 +11,11 @@ export interface Draw {
   timestamp: string
 }
 
+export interface CommittedCatch {
+  draw: Draw
+  candidates: readonly Entry[]
+}
+
 export type ThemePreference = 'system' | 'light' | 'dark'
 
 export interface PickerState {

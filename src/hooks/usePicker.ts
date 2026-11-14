@@ -47,7 +47,8 @@ export function usePicker() {
     try {
       // Selection happens outside React updaters and before any result presentation.
       const current = stateRef.current;
-      const winner = selectWinner(eligibleEntries(current));
+      const candidates = eligibleEntries(current);
+      const winner = selectWinner(candidates);
       if (!winner) {
         setError("No eligible names. Add names or restore the fishing pool.");
         return;
@@ -63,6 +64,7 @@ export function usePicker() {
       setResult(draw);
       commit(next);
       setError("");
+      return { draw, candidates };
     } catch (cause) {
       setError(
         cause instanceof Error
